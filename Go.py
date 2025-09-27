@@ -28,7 +28,7 @@ def speak_message(message):
     try:
         print(f"🔊 Speaking: {message}")
         
-        # Create fresh engine each time - this fixes the stuck issue!
+        
         engine = pyttsx3.init()
         engine.setProperty("rate", 150)
         engine.setProperty("volume", 1.0)
@@ -36,7 +36,7 @@ def speak_message(message):
         engine.say(message)
         engine.runAndWait()
         
-        # Clean up engine
+        
         engine.stop()
         del engine
         
@@ -49,22 +49,22 @@ def speak_message(message):
 
 try:
     while True:
-        # Read frame from camera
+        
         ret, frame = cap.read()
         if not ret:
             print("Error: Cannot read frame")
             break
         
-        # Run YOLO detection on this frame
+        
         results = model.predict(frame, conf=0.5, verbose=False)
         
-        # Process detections
+        
         labels = []
         annotated_frame = frame.copy()
         
         for result in results:
             if result.boxes is not None:
-                # Draw annotations
+               
                 annotated_frame = result.plot()
                 
                 for box in result.boxes:
@@ -72,18 +72,18 @@ try:
                     confidence = float(box.conf[0])
                     label = model.names[cls_id]
                     
-                    # Only include high-confidence detections
+                    
                     if confidence > 0.5:
                         labels.append(label)
         
-        # Display the frame
+        
         cv2.imshow('YOLO Detection', annotated_frame)
         
-        # Speech logic
+       
         current_time = time.time()
         
         if labels and (current_time - last_speech_time > speech_interval):
-            # Count objects
+            
             counts = Counter(labels)
             messages = []
             
@@ -96,11 +96,11 @@ try:
             if messages:
                 full_message = "I see " + ", ".join(messages)
                 
-                # Use the new speak function that creates fresh engine
+              
                 if speak_message(full_message):
                     last_speech_time = current_time
         
-        # Check for quit
+        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -113,13 +113,13 @@ except Exception as e:
     traceback.print_exc()
 
 finally:
-    # Clean up
+   
     cap.release()
     cv2.destroyAllWindows()
     print("Program stopped successfully!")
 
 
-# ========== BACKUP SOLUTION - If pyttsx3 still doesn't work ==========
+
 
 def backup_version_with_system_tts():
     """Alternative version using system TTS commands"""
@@ -134,15 +134,15 @@ def backup_version_with_system_tts():
         
         try:
             if system == "windows":
-                # Windows PowerShell TTS
+                
                 cmd = f'powershell -Command "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak(\'{text}\')"'
                 os.system(cmd)
                 return True
-            elif system == "darwin":  # macOS
+            elif system == "darwin":  
                 os.system(f'say "{text}"')
                 return True
             elif system == "linux":
-                # Try espeak first, then festival
+                
                 if os.system(f'espeak "{text}" 2>/dev/null') == 0:
                     return True
                 elif os.system(f'festival --tts <<< "{text}" 2>/dev/null') == 0:
